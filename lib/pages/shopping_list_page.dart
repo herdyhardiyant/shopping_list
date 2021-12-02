@@ -271,7 +271,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
 
   Widget get _addItemListButton {
     return IconButton(
-      icon: const Icon(Icons.add),
+      icon: const Icon(Icons.add_circle_outline),
       onPressed: () {
         final textFieldController = TextEditingController();
         showDialog(
