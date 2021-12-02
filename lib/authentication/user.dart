@@ -12,7 +12,6 @@ class User with ChangeNotifier {
       var hashedPassword = DBCrypt().hashpw(password, DBCrypt().gensalt());
       final uri = Uri.parse(
           'https://shopping-list-f6c78-default-rtdb.asia-southeast1.firebasedatabase.app/user.json');
-      bool isAlreadyExist = await checkIsUserExist(username);
       final response = await http.post(uri,
           body:
               json.encode({"username": username, "password": hashedPassword}));
@@ -40,15 +39,20 @@ class User with ChangeNotifier {
   Future<bool> loginUser(String username, String password) async {
     try {
       var usersData = await _userData;
+      late String hashedPassword;
+      // Get Hashed Password from the correct username
       usersData.forEach((key, value) {
-        var isPasswordCorrect = DBCrypt().checkpw(password, value["password"]);
-        if (value["username"] == username && isPasswordCorrect) {
-          isAuthorized = true;
-
+        if(value["username"] == username){
+          hashedPassword = value["password"];
           userId = key;
-          notifyListeners();
         }
       });
+      //CHeck pw
+      var isPasswordCorrect = DBCrypt().checkpw(password,hashedPassword);
+      if (isPasswordCorrect) {
+        isAuthorized = true;
+        notifyListeners();
+      }
       return isAuthorized;
     } catch (_) {
       return isAuthorized;

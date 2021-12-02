@@ -77,8 +77,21 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
           title: const Text("Shopping List"),
           actions: isAuthorized ? [logout] : [const Icon(Icons.block)],
         ),
-        floatingActionButton: isAuthorized ? _addItemListButton : const Icon(Icons.block),
+        persistentFooterButtons:
+            isAuthorized ? [_addItemListButton] : [const Icon(Icons.block)],
         body: widgetBody);
+  }
+
+  Widget get widgetBody {
+    var isAuthorized = Provider.of<User>(context).isAuthorized;
+    if (!isAuthorized) {
+      return _unauthorizedScreen;
+    }
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else {
+      return _buildShoppingList;
+    }
   }
 
   Widget get logout {
@@ -92,6 +105,7 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                     actions: [
                       TextButton(
                           onPressed: () {
+                            Navigator.pop(context);
                             Navigator.pushReplacementNamed(
                                 context, LoginPage.routeName);
                           },
@@ -107,37 +121,31 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
         icon: const Icon(Icons.logout));
   }
 
-  Widget get widgetBody {
-    var isAuthorized = Provider.of<User>(context).isAuthorized;
-    if (!isAuthorized) {
-      return Center(
-        child: Column(
-          children: [
-            const Text("You are unauthorized!"),
-            TextButton(
-                onPressed: () {
-                  Navigator.of(context).popAndPushNamed(LoginPage.routeName);
-                },
-                child: const Text("Login Here"))
-          ],
-        ),
-      );
-    }
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else {
-      return _buildShoppingList;
-    }
+  Widget get _unauthorizedScreen {
+    return Center(
+      child: Column(
+        children: [
+          const Text("You are unauthorized!"),
+          TextButton(
+              onPressed: () {
+                Navigator.of(context).popAndPushNamed(LoginPage.routeName);
+              },
+              child: const Text("Login Here"))
+        ],
+      ),
+    );
   }
 
   Widget get _buildShoppingList {
     if (_shoppingList!.isEmpty) {
-      return const Center(
-          child: Text(
-              "You don't have any items..."));
+      return const Center(child: Text("You don't have any items..."));
     }
-    return ListView(
-      children: _shoppingList!.map(_buildShoppingListItem).toList(),
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      itemBuilder: (ctx, index) {
+        return _buildShoppingListItem(_shoppingList![index]);
+      },
+      itemCount: _shoppingList!.length,
     );
   }
 
